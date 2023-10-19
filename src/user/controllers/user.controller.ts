@@ -8,7 +8,7 @@ export class UserController {
     @UseGuards(AuthGuard())
     @Get('profile')
     async getProfile(@Req() req: any) {
-        return this.userService.getProfile(req.user);
+        // return this.userService.getProfile(req.user);
     }
 
     @UseGuards(AuthGuard('jwt'))
@@ -20,7 +20,7 @@ export class UserController {
 
     @Get(':id')
     getUserById(@Param('id') id: string) {
-        return this.userService.getUserById(id);
+        // return this.userService.getUserById(id);
     }
 
 }

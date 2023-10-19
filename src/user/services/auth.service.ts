@@ -12,10 +12,11 @@ export class AuthService {
     ) { }
 
     async register(userDto: CreateUserDto) {
+        if (userDto.role === "mentor") {
+            userDto.number_of_mentees = 0;
+        }
         const user = await this.userService.createUser(userDto);
         const userObject = user.toObject ? user.toObject() : user;
-        // filtered fields
-        // delete userObject.password;
         delete userObject.refreshToken;
 
         const token = await this._createToken(user);
@@ -33,8 +34,6 @@ export class AuthService {
     async login(loginUserDto: LoginUserDto) {
         const user = await this.userService.login(loginUserDto);
         const userObject = user.toObject ? user.toObject() : user;
-        // filtered fields
-        // delete userObject.password;
         delete userObject.refreshToken;
 
         const token = await this._createToken(user);
@@ -48,9 +47,6 @@ export class AuthService {
 
         return response;
     }
-
-
-    // handling token
 
     private async _createToken({ email }) {
         const accessToken = this.jwtService.sign({ email })
@@ -86,7 +82,6 @@ export class AuthService {
             );
         }
     }
-
 
     async logout(user: User) {
         await this.userService.updateUser(
