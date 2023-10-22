@@ -16,6 +16,8 @@ import { ScheduleRepository } from 'src/schedule/repositories/schedule.repositor
 import { BlogService } from 'src/blog/services/blog.service';
 import { BlogRepository } from 'src/blog/repositories/blog.repository';
 import { ScheduleModule } from 'src/schedule/schedule.module';
+import { BlogModule } from 'src/blog/blog.module';
+import { RatingModule } from 'src/rating/rating.module';
 
 @Module({
     imports: [
@@ -25,9 +27,16 @@ import { ScheduleModule } from 'src/schedule/schedule.module';
                 schema: AppointmentSchema
             }
         ]),
+        forwardRef(() => UserModule),
+        forwardRef(() => BlogModule),
+        forwardRef(() => ScheduleModule),
+        forwardRef(() => RatingModule),
+        forwardRef(() => BlogModule),
+        // forwardRef(() => AppointmentModule),
     ],
+
     controllers: [AppointmentController],
-    providers: [AppointmentService, AppointmentRepository, UserService, ScheduleService],
+    providers: [AppointmentService, AppointmentRepository],
     exports: [AppointmentService]
 })
 export class AppointmentModule { }

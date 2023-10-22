@@ -69,7 +69,7 @@ export class AuthService {
 
     async handleVerifyToken(token) {
         try {
-            const payload = this.jwtService.verify(token); // this.configService.get('SECRETKEY')
+            const payload = this.jwtService.verify(token);
             return payload['email'];
         } catch (e) {
             throw new HttpException(
@@ -96,5 +96,24 @@ export class AuthService {
             throw new HttpException('Invalid token', HttpStatus.UNAUTHORIZED);
         }
         return user;
+    }
+
+    async refresh(refresh_token) {
+        try {
+            const payload = await this.jwtService.verify(refresh_token, {
+                secret: process.env.SECRETKEY_REFRESH,
+            });
+            const user = await this.userService.getUserByRefresh(
+                refresh_token,
+                payload.email,
+            );
+            const token = await this._createToken(user);
+            return {
+                email: user.email,
+                ...token,
+            };
+        } catch (e) {
+            throw new HttpException('Invalid token', HttpStatus.UNAUTHORIZED);
+        }
     }
 }

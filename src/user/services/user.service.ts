@@ -11,9 +11,9 @@ import { RatingService } from 'src/rating/services/rating.service';
 export class UserService {
     constructor(
         private readonly userRepository: UserRepository,
-        private readonly blogService: BlogService,
-        private readonly scheduleService: ScheduleService,
-        private readonly ratingService: RatingService,
+        @Inject(forwardRef(() => BlogService)) private readonly blogService: BlogService,
+        @Inject(forwardRef(() => ScheduleService)) private readonly scheduleService: ScheduleService,
+        @Inject(forwardRef(() => RatingService)) private readonly ratingService: RatingService,
 
     ) { }
 
@@ -69,88 +69,119 @@ export class UserService {
         });
     }
 
-    // async getUserById(id: string) {
-    //     try {
-    //         const user = await this.userRepository.findById(id);
-    //         const blogs = await this.blogService.getAllBlogsByUserId(id)
-    //         const ratings = await this.ratingService.getAllRatingsByUserId(id)
-    //         const schedules = await this.scheduleService.getAllSchedulesByUserId(id)
+    async getUserById(id: string) {
+        try {
+            const user = await this.userRepository.findById(id);
+            if (user) {
+                const userObject = user.toObject ? user.toObject() : user;
 
-    //         await Promise.all(ratings.map(async (rating) => {
-    //             await rating.populate({ path: 'mentee', select: '-password -refreshToken -date_of_birth' });
-    //         }));
+                delete userObject.password;
+                delete userObject.refreshToken;
+                delete userObject.date_of_birth;
+                return userObject
+            }
 
-    //         if (user) {
-    //             const userObject = user.toObject ? user.toObject() : user;
+            // const blogs = await this.blogService.getAllBlogsByUserId(id)
+            // const ratings = await this.ratingService.getAllRatingsByUserId(id)
+            // const schedules = await this.scheduleService.getAllSchedulesByUserId(id)
 
-    //             delete userObject.password;
-    //             delete userObject.refreshToken;
-    //             delete userObject.date_of_birth;
+            // await Promise.all(ratings.map(async (rating) => {
+            //     await rating.populate({ path: 'mentee', select: '-password -refreshToken -date_of_birth' });
+            // }));
 
-    //             return {
-    //                 ...userObject,
-    //                 blogs,
-    //                 schedules,
-    //                 ratings,
-    //             };
-    //         }
-    //     } catch (error) {
-    //         console.error(error);
-    //         throw error;
-    //     }
-    // }
+            // if (user) {
+            //     const userObject = user.toObject ? user.toObject() : user;
 
-    // async getProfile(user: User) {
-    //     try {
-    //         if (user.role === "mentee") {
-    //             return await this.userRepository.findById(user.id);
-    //         }
-    //         const returnUser = await this.userRepository.findById(user.id);
+            //     delete userObject.password;
+            //     delete userObject.refreshToken;
+            //     delete userObject.date_of_birth;
 
-    //         const blogs = await this.blogService.getAllBlogsByUserId(user.id)
-
-    //         const ratings = await this.ratingService.getAllRatingsByUserId(user.id)
-
-    //         await Promise.all(ratings.map(async (rating) => {
-    //             await rating.populate({ path: 'mentee', select: '-password -refreshToken -date_of_birth' });
-    //         }));
-
-    //         if (returnUser) {
-    //             const userObject = user.toObject ? user.toObject() : user;
-
-    //             return {
-    //                 ...userObject,
-    //                 blogs,
-    //                 ratings
-    //             };
-    //         }
-    //     } catch (error) {
-    //         console.error(error);
-    //         throw error;
-    //     }
-    // }
-
-    async getAllMentors() {
-        const mentors = await this.userRepository.getByCondition(
-            { role: 'mentor' },
-            ['name', 'avatar', '_id', 'email', 'gender', 'phone', 'number_of_mentees']
-        );
-
-        return mentors
+            //     return {
+            //         ...userObject,
+            //         blogs,
+            //         schedules,
+            //         ratings,
+            //     };
+            // }
+        } catch (error) {
+            console.error(error);
+            throw error;
+        }
     }
 
-    async searchMentor(keyword: string) {
-        keyword = keyword.toLowerCase();
+    async getProfile(user: User) {
+        return await this.userRepository.findById(user.id);
+
+        // try {
+        //     if (user.role === "mentee") {
+        //         return await this.userRepository.findById(user.id);
+
+        // const returnUser = await this.userRepository.findById(user.id);
+
+        // const blogs = await this.blogService.getAllBlogsByUserId(user.id)
+
+        // const ratings = await this.ratingService.getAllRatingsByUserId(user.id)
+
+        // await Promise.all(ratings.map(async (rating) => {
+        //     await rating.populate({ path: 'mentee', select: '-password -refreshToken -date_of_birth' });
+        // }));
+
+        // if (returnUser) {
+        //     const userObject = user.toObject ? user.toObject() : user;
+
+        //     return {
+        //         ...userObject,
+        //         blogs,
+        //         ratings
+        //     };
+        // }
+        // } catch (error) {
+        //     console.error(error);
+        //     throw error;
+        // }
+    }
+
+    async getAllMentors(page: number, limit: number = 10) {
+        const count = await this.userRepository.countDocuments({ role: 'mentor' })
+        const countPage = Math.ceil(count / limit)
+        const mentors = await this.userRepository.getByCondition(
+            { role: 'mentor' },
+            ['name', 'avatar', 'email', 'gender', 'phone', 'number_of_mentees'],
+            {
+                sort: {
+                    _id: -1,
+                },
+                skip: (page - 1) * limit,
+                limit: limit
+            },
+        );
+
+        return { count, countPage, mentors }
+    }
+
+    async searchMentor(keyword: string, page: number, limit: number = 10) {
+        const count = await this.userRepository.countDocuments({
+            role: 'mentor',
+            name: { $regex: new RegExp(keyword, 'i') },
+        },)
+        const countPage = Math.ceil(count / limit)
 
         const mentors = await this.userRepository.getByCondition(
             {
                 role: 'mentor',
-                name: { $regex: new RegExp(keyword, 'i') }, // Case-insensitive search
+                name: { $regex: new RegExp(keyword, 'i') },
             },
-            ['name', 'avatar', '_id', 'email', 'gender', 'phone', 'number_of_mentees']
+            ['name', 'avatar', 'email', 'gender', 'phone', 'number_of_mentees'],
+            {
+                sort: {
+                    _id: -1,
+                },
+                skip: (page - 1) * limit,
+                limit: limit
+            },
         );
 
-        return mentors;
+        return { count, countPage, mentors }
     }
 
     async checkMentee(mentee_id: string) {
@@ -173,7 +204,34 @@ export class UserService {
         return await this.userRepository.findByIdAndUpdate(id, { $inc: { number_of_mentees: 1 } });
     }
 
+    async getAllBlogsByUserId(id: string, page: number, limit: number) {
+        return await this.blogService.getAllBlogsByUserId(id, page, limit)
+    }
 
+    async getAllSchedulesByUserId(id: string) {
+        return await this.scheduleService.getAllSchedulesByUserId(id)
+    }
 
+    async getAllRatingsByUserId(id: string, page: number, limit: number) {
+        return await this.ratingService.getAllRatingsByUserId(id, page, limit)
+
+    }
+
+    async getUserByRefresh(refresh_token, email) {
+        const user = await this.findByEmail(email);
+        if (!user) {
+            throw new HttpException('Invalid token', HttpStatus.UNAUTHORIZED);
+        }
+        const is_equal = await bcrypt.compare(
+            this.reverse(refresh_token),
+            user.refreshToken,
+        );
+
+        if (!is_equal) {
+            throw new HttpException('Invalid credentials', HttpStatus.UNAUTHORIZED);
+        }
+
+        return user;
+    }
 
 }

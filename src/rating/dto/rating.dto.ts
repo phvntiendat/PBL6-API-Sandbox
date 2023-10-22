@@ -3,8 +3,6 @@ import { IsNotEmpty, IsIn } from "class-validator";
 export class CreateRatingDto {
 
     mentee: string;
-
-    @IsNotEmpty()
     mentor: string;
 
     @IsNotEmpty()
@@ -17,4 +15,11 @@ export class CreateRatingDto {
     @IsIn([1, 2, 3, 4, 5])
     @IsNotEmpty()
     stars: number;
+}
+
+export class PaginationRatingDto {
+    @IsNotEmpty()
+    page: number;
+    @IsNotEmpty()
+    limit: number;
 }

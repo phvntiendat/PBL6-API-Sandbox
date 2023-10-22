@@ -13,19 +13,8 @@ import { UserService } from './services/user.service';
 import { AuthService } from './services/auth.service';
 import { UserRepository } from './repositories/user.repository';
 import { JwtStrategy } from './jwt.strategy';
-import { BlogSchema } from 'src/blog/models/blog.model';
-import { AppointmentSchema } from 'src/appointment/models/appointment.model';
-import { ScheduleSchema } from 'src/schedule/models/schedule.model';
-import { RatingSchema } from 'src/rating/models/rating.model';
-import { BlogService } from 'src/blog/services/blog.service';
-import { RatingService } from 'src/rating/services/rating.service';
-import { ScheduleService } from 'src/schedule/services/schedule.service';
 import { AppointmentModule } from 'src/appointment/appointment.module';
 import { RatingModule } from 'src/rating/rating.module';
-import { BlogRepository } from 'src/blog/repositories/blog.repository';
-import { RatingRepository } from 'src/rating/repositories/rating.repository';
-import { AppointmentRepository } from 'src/appointment/repositories/appointment.repository';
-import { ScheduleRepository } from 'src/schedule/repositories/schedule.repository';
 
 @Module({
     imports: [
@@ -52,11 +41,16 @@ import { ScheduleRepository } from 'src/schedule/repositories/schedule.repositor
             }),
             inject: [ConfigService]
         }),
-
+        // forwardRef(() => UserModule),
+        forwardRef(() => BlogModule),
+        forwardRef(() => ScheduleModule),
+        forwardRef(() => RatingModule),
+        forwardRef(() => BlogModule),
+        forwardRef(() => AppointmentModule),
     ],
 
     controllers: [AuthController, UserController, MentorController],
-    providers: [UserService, AuthService, UserRepository, JwtStrategy, BlogService, ScheduleService, RatingService],
+    providers: [UserService, AuthService, UserRepository, JwtStrategy],
     exports: [UserService]
 
 })
