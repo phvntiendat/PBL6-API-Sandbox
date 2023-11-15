@@ -1,45 +1,50 @@
-import { Schema, Document } from "mongoose";
-
-const ExperienceSchema = new Schema({
-    position: String,
-    company: String,
-    start_date: Date,
-    end_date: Date,
-});
-
-const EducationSchema = new Schema({
-    place: String,
-    major: String,
-    start_date: Date,
-    end_date: Date,
-
-});
+import { Document, Schema } from "mongoose";
+import { User } from "src/user/user.model";
 
 const BioSchema = new Schema(
     {
         intro: String,
-        experiences: [{ type: Schema.Types.ObjectId, ref: 'Experience' }],
-        education: {
-            type: Schema.Types.ObjectId,
-            ref: 'Education'
-        },
+        user: { type: Schema.Types.ObjectId, ref: 'User' },
     },
     {
         timestamps: true,
         collection: "bios",
+        toObject: {virtuals: true}
     }
 );
 
+BioSchema.virtual('awards', {
+    ref: 'Award',
+    localField: '_id',
+    foreignField: 'bio',
+    justOne: false,
+});
+
+BioSchema.virtual('skills', {
+    ref: 'Skill',
+    localField: '_id',
+    foreignField: 'bio',
+    justOne: false,
+});
+
+
+BioSchema.virtual('experiences', {
+    ref: 'Experience',
+    localField: '_id',
+    foreignField: 'bio',
+    justOne: false,
+});
+
+
+BioSchema.virtual('educations', {
+    ref: 'Education',
+    localField: '_id',
+    foreignField: 'bio',
+    justOne: false,
+});
+
 export { BioSchema };
-
-export interface Experience extends Document {
-    position: string;
-    company: string;
-    start_date: Date;
-    end_date: Date;
-}
-
 export interface Bio extends Document {
     intro: string;
-    experiences: Experience[];
+    user: User;
 }

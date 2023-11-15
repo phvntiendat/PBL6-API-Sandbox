@@ -1,20 +1,22 @@
-import { ScheduleModule } from 'src/schedule/schedule.module';
 import { Module, forwardRef } from '@nestjs/common';
-import { MongooseModule } from '@nestjs/mongoose';
-import { UserSchema } from './models/user.model';
-import { BlogModule } from 'src/blog/blog.module';
-import { PassportModule } from '@nestjs/passport';
-import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { AuthController } from './controllers/auth.controller';
-import { UserController } from './controllers/user.controller';
-import { MentorController } from './controllers/mentor.controller';
-import { UserService } from './services/user.service';
-import { AuthService } from './services/auth.service';
-import { UserRepository } from './repositories/user.repository';
-import { JwtStrategy } from './jwt.strategy';
+import { JwtModule } from '@nestjs/jwt';
+import { MongooseModule } from '@nestjs/mongoose';
+import { PassportModule } from '@nestjs/passport';
 import { AppointmentModule } from 'src/appointment/appointment.module';
+import { AuthModule } from 'src/auth/auth.module';
+import { BioModule } from 'src/bio/bio.module';
+import { BlogModule } from 'src/blog/blog.module';
+import { MediaModule } from 'src/media/media.module';
 import { RatingModule } from 'src/rating/rating.module';
+import { ScheduleModule } from 'src/schedule/schedule.module';
+import { JwtStrategy } from '../auth/jwt.strategy';
+import { MentorController } from './controllers/mentor.controller';
+import { UserController } from './controllers/user.controller';
+import { UserSchema } from './user.model';
+import { UserRepository } from './user.repository';
+import { UserService } from './user.service';
+import { CourseModule } from 'src/course/course.module';
 
 @Module({
     imports: [
@@ -41,16 +43,19 @@ import { RatingModule } from 'src/rating/rating.module';
             }),
             inject: [ConfigService]
         }),
-        // forwardRef(() => UserModule),
+        forwardRef(() => AuthModule),
+        forwardRef(() => BioModule),
+        forwardRef(() => MediaModule),
         forwardRef(() => BlogModule),
         forwardRef(() => ScheduleModule),
         forwardRef(() => RatingModule),
         forwardRef(() => BlogModule),
         forwardRef(() => AppointmentModule),
+        forwardRef(() => CourseModule),
     ],
 
-    controllers: [AuthController, UserController, MentorController],
-    providers: [UserService, AuthService, UserRepository, JwtStrategy],
+    controllers: [UserController, MentorController],
+    providers: [UserService, UserRepository, JwtStrategy],
     exports: [UserService]
 
 })
