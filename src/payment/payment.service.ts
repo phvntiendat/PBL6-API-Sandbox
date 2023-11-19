@@ -15,8 +15,7 @@ export class PaymentService {
         var orderId = requestId;
         var orderInfo = "pay with MoMo";
         const redirectUrl = process.env.REDIRECT_URL;
-        const ipnUrl = process.env.IPN_URL;
-        // var ipnUrl = redirectUrl = "https://webhook.site/454e7b77-f177-4ece-8236-ddf1c26ba7f8";
+        const ipnUrl = 'http://localhost:3001/payment/ipn';
         var amount = payment.amount.toString();
         var requestType = "payWithATM"
         var extraData = "";
@@ -26,6 +25,8 @@ export class PaymentService {
         var signature = crypto.createHmac('sha256', secretKey)
             .update(rawSignature)
             .digest('hex');
+        console.log(signature);
+        
         // console.log("--------------------SIGNATURE----------------")
         const requestBody = JSON.stringify({
             partnerCode: partnerCode,

@@ -41,8 +41,8 @@ export class CourseController {
     }
 
     @Get()
-    getAllCourses() {
-        return this.courseService.getAllCourses();
+    getAllCourses(@Query() {page, limit}: PaginationCourseDto) {
+        return this.courseService.getAllCourses(page, limit);
     }
 
     @UseGuards(AuthGuard("jwt"))
